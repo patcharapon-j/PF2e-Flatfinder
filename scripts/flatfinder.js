@@ -4,6 +4,7 @@
  * Registers settings and wires up the automation hooks for:
  *  - Competence-check result badges on skill (and optionally perception) chat cards.
  *  - The Flatfinder Incapacitation save adjustment annotation.
+ *  - Flattening of static item/inline DCs (subtracting the source item's level).
  *  - The Flatfinder Elite/Weak (+/-2 level) template correction.
  *  - The Flatfinder encounter XP/difficulty badge in the combat tracker.
  */
@@ -12,6 +13,7 @@ import { MODULE_ID } from "./constants.js";
 import { registerSettings } from "./settings.js";
 import { renderCompetenceBadge } from "./competence.js";
 import { registerIncapacitation } from "./incapacitation.js";
+import { registerFlattenDc } from "./flatten.js";
 import { renderEncounterBudget } from "./encounter.js";
 
 Hooks.once("init", () => {
@@ -24,6 +26,7 @@ Hooks.once("ready", () => {
     return;
   }
   registerIncapacitation();
+  registerFlattenDc();
   console.log(`${MODULE_ID} | Flatfinder automation ready.`);
 });
 

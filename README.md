@@ -1,5 +1,5 @@
 # PF2e Flatfinder
-A compendium of replacements for Feats, Actions and Activities to streamline running Flatfinder on Foundry, **plus automation** for Competence-check result badges, the Incapacitation adjustment, the Flatfinder Elite/Weak templates, and a Flatfinder encounter XP/difficulty badge in the combat tracker. To be used with the Pathfinder 2e system and the Proficiency without Level variant enabled.
+A compendium of replacements for Feats, Actions and Activities to streamline running Flatfinder on Foundry, **plus automation** for Competence-check result badges, the Incapacitation adjustment, item/inline DC flattening, the Flatfinder Elite/Weak templates, and a Flatfinder encounter XP/difficulty badge in the combat tracker. To be used with the Pathfinder 2e system and the Proficiency without Level variant enabled.
 
 Compatible with Foundry VTT v13–v14 and the current Pathfinder 2e system. The badges are styled to blend with the **PF2e Dorako UI** module on both light and dark themes.
 
@@ -55,6 +55,13 @@ When a character makes a **skill check** (and, optionally, perception checks), a
 ### Incapacitation adjustment
 PF2e's native incapacitation rule improves the target's save by one degree of success. With *Incapacitation adjustment* enabled, that native behavior is **suppressed** and replaced with the Flatfinder rule: when a creature is higher level than the source of an incapacitation effect, it gains an **untyped bonus to the save equal to twice the level difference, up to +10** (a spell counts as level equal to twice its rank). The bonus is added as a real modifier (it shows in the roll breakdown and affects the degree of success), so no manual adjustment is needed. This works by wrapping `game.pf2e.Check.roll`; **lib-wrapper is recommended**.
 
+### Item & inline DC flattening
+pf2e-flatten removes a creature's level from everything derived from its statistics, but it can't see numbers baked directly into content. With *Flatten item & inline DCs* enabled (default), this module subtracts the originating item's level — at roll time — from **static DCs** the system would otherwise leave too high:
+- **inline checks** written into descriptions, e.g. `@Check[fortitude|dc:25]`, and
+- **fixed save DCs** carried by items/spells that aren't computed from an actor.
+
+Only *static* DCs are touched. A DC that resolves from a live actor statistic is left to pf2e-flatten, so the two never stack and double-count. If no source item level can be determined, the roll is left untouched (native behavior). The flattened value is what's used for the degree of success and shown in the result. This works by wrapping `game.pf2e.Check.roll`; **lib-wrapper is recommended**.
+
 ### Elite / Weak templates (and pf2e-flatten)
 **Use the bundled "FF Elite/Weak" effects** to apply the templates — they add a clean +/-2 to all checks/DCs and leave the creature's level alone, which is exactly what's needed alongside [pf2e-flatten](https://github.com/patcharapon-j/pf2e-flatten).
 
@@ -72,5 +79,6 @@ As the GM adds PCs and monsters/hazards to the **combat tracker**, a badge at th
 - Several feats are not automated properly.
 - Unified Equipment Quality is not implemented.
 - Earn Income and Craft are not implemented.
-- Spells such as Animal Form don't have flattened modifiers.
-- Items don't have flattened modifiers and DCs.
+- Spells such as Animal Form don't have flattened *modifiers* (battle-form attack/AC); only DCs are flattened. pf2e-flatten already adjusts battle-form strikes via the character's level.
+- DC flattening needs a discoverable source-item level on the roll context; inline checks rolled with no item origin (e.g. from a journal) are left untouched.
+- The inline `@Check` button still shows the book DC before it's clicked; the flattened DC appears in the roll result.

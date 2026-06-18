@@ -46,6 +46,16 @@ export function registerSettings() {
     requiresReload: false,
   });
 
+  game.settings.register(MODULE_ID, "flattenDc", {
+    name: "PF2E-FLATFINDER.Settings.FlattenDc.Name",
+    hint: "PF2E-FLATFINDER.Settings.FlattenDc.Hint",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: true,
+    requiresReload: false,
+  });
+
   game.settings.register(MODULE_ID, "eliteWeakLevel", {
     name: "PF2E-FLATFINDER.Settings.EliteWeakLevel.Name",
     hint: "PF2E-FLATFINDER.Settings.EliteWeakLevel.Hint",
