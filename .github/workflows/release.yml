@@ -1,0 +1,99 @@
+name: Release Module
+
+# Manually triggered release. Pick the semver bump (patch / minor / major); the
+# workflow increments module.json, packages the module, commits the version bump
+# and publishes a GitHub Release whose assets power the manifest install/update URL:
+#   https://github.com/<owner>/<repo>/releases/latest/download/module.json
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump"
+        required: true
+        type: choice
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute next version
+        id: version
+        run: |
+          current=$(node -p "require('./module.json').version")
+          IFS='.' read -r major minor patch <<< "${current%%-*}"
+          case "${{ inputs.bump }}" in
+            major) major=$((major + 1)); minor=0; patch=0 ;;
+            minor) minor=$((minor + 1)); patch=0 ;;
+            patch) patch=$((patch + 1)) ;;
+          esac
+          new="${major}.${minor}.${patch}"
+          echo "Bumping ${current} -> ${new} (${{ inputs.bump }})"
+          echo "current=${current}" >> "$GITHUB_OUTPUT"
+          echo "version=${new}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${new}" >> "$GITHUB_OUTPUT"
+
+      - name: Update module.json
+        env:
+          NEW_VERSION: ${{ steps.version.outputs.version }}
+          REPO: ${{ github.repository }}
+        run: |
+          node -e '
+            const fs = require("fs");
+            const m = JSON.parse(fs.readFileSync("module.json", "utf8"));
+            const base = `https://github.com/${process.env.REPO}`;
+            m.version = process.env.NEW_VERSION;
+            m.url = base;
+            m.bugs = `${base}/issues`;
+            // The per-release manifest pins its own versioned download; the manifest
+            // URL stays on /latest/ so Foundry always sees the newest release.
+            m.manifest = `${base}/releases/latest/download/module.json`;
+            m.download = `${base}/releases/download/v${process.env.NEW_VERSION}/module.zip`;
+            fs.writeFileSync("module.json", JSON.stringify(m, null, 2) + "\n");
+          '
+          echo "--- module.json (version/url/manifest/download) ---"
+          node -e "const m=require('./module.json');console.log({version:m.version,manifest:m.manifest,download:m.download})"
+
+      - name: Package module.zip
+        run: |
+          zip -r module.zip \
+            module.json \
+            scripts \
+            styles \
+            lang \
+            packs \
+            README.md
+
+      - name: Commit version bump
+        env:
+          NEW_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add module.json
+          git commit -m "chore: release v${NEW_VERSION}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          gh release create "$TAG" \
+            module.zip \
+            module.json \
+            --title "$TAG" \
+            --target "$(git rev-parse HEAD)" \
+            --generate-notes
