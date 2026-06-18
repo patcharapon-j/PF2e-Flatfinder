@@ -8,6 +8,9 @@
   "PF2E-FLATFINDER.Settings.Incapacitation.Name": "Incapacitation adjustment",
   "PF2E-FLATFINDER.Settings.Incapacitation.Hint": "Replace PF2e's native incapacitation degree-of-success change with the Flatfinder rule: an untyped bonus to the save equal to twice the level difference (max +10) when the target outlevels the source (spells count as twice their rank).",
 
+  "PF2E-FLATFINDER.Settings.FlattenDc.Name": "Flatten item & inline DCs",
+  "PF2E-FLATFINDER.Settings.FlattenDc.Hint": "Subtract the source item's level from static DCs that the system doesn't flatten automatically: inline @Check[...|dc:N] DCs written into descriptions and fixed save DCs carried by items/spells. DCs derived from a creature's statistics are left to pf2e-flatten, so the two never stack.",
+
   "PF2E-FLATFINDER.Settings.EncounterBudget.Name": "Encounter XP budget badge",
   "PF2E-FLATFINDER.Settings.EncounterBudget.Hint": "Show the Flatfinder (Proficiency-without-Level) encounter XP total and difficulty band at the top of the combat tracker.",
 
