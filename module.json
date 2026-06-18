@@ -1,21 +1,39 @@
 {
   "id": "pf2e-flatfinder",
   "title": "PF2e Flatfinder",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "compatibility": {
     "minimum": "13",
-    "verified": "13"
+    "verified": "14"
   },
   "flags": {
     "canUpload": true
   },
-  "url": "https://github.com/MathemagicalCalibrations/PF2e-Flatfinder",
-  "manifest": "https://raw.githubusercontent.com/MathemagicalCalibrations/PF2e-Flatfinder/master/module.json",
-  "download": "https://github.com/MathemagicalCalibrations/PF2e-Flatfinder/archive/refs/heads/main.zip",
+  "url": "https://github.com/patcharapon-j/PF2e-Flatfinder",
+  "manifest": "https://github.com/patcharapon-j/PF2e-Flatfinder/releases/latest/download/module.json",
+  "download": "https://github.com/patcharapon-j/PF2e-Flatfinder/releases/latest/download/module.zip",
+  "bugs": "https://github.com/patcharapon-j/PF2e-Flatfinder/issues",
   "authors": [
     {
       "name": "BRino",
       "flags": {}
+    },
+    {
+      "name": "patcharapon-j (fork maintainer)",
+      "flags": {}
+    }
+  ],
+  "esmodules": [
+    "scripts/flatfinder.js"
+  ],
+  "styles": [
+    "styles/flatfinder.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
     }
   ],
   "packs": [
@@ -31,5 +49,33 @@
       }
     }
   ],
-  "description": "<p>A compendium of replacements for Feats, Actions and Activities to streamline running Flatfinder on Foundry. To be used with the Pathfinder 2e system and the Proficiency without Level variant enabled.</p>"
+  "relationships": {
+    "systems": [
+      {
+        "id": "pf2e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "6.0.0"
+        }
+      }
+    ],
+    "recommends": [
+      {
+        "id": "lib-wrapper",
+        "type": "module",
+        "reason": "Used for the safest possible wrapping of the Elite/Weak level adjustment."
+      },
+      {
+        "id": "pf2e-flatten",
+        "type": "module",
+        "reason": "Flattens NPC/PC proficiency bonuses to match the Flatfinder math."
+      },
+      {
+        "id": "pf2e-dorako-ui",
+        "type": "module",
+        "reason": "Competence and encounter badges are styled to blend with Dorako UI themes."
+      }
+    ]
+  },
+  "description": "<p>A compendium of replacements for Feats, Actions and Activities to streamline running Flatfinder on Foundry, plus automation for Competence-check result badges, Incapacitation adjustment, Flatfinder Elite/Weak templates, and a Flatfinder encounter XP/difficulty badge in the combat tracker. To be used with the Pathfinder 2e system and the Proficiency without Level variant enabled.</p>"
 }

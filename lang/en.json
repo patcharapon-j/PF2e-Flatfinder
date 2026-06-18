@@ -1,0 +1,51 @@
+{
+  "PF2E-FLATFINDER.Settings.CompetenceBadge.Name": "Competence-check badges",
+  "PF2E-FLATFINDER.Settings.CompetenceBadge.Hint": "Show a Flatfinder competence band on roll cards. Lore skills gain one band; a natural 20/1 shifts the band up/down by one.",
+  "PF2E-FLATFINDER.Settings.CompetenceBadge.Off": "Off",
+  "PF2E-FLATFINDER.Settings.CompetenceBadge.Skills": "Skill checks only",
+  "PF2E-FLATFINDER.Settings.CompetenceBadge.All": "Skill & perception checks",
+
+  "PF2E-FLATFINDER.Settings.Incapacitation.Name": "Incapacitation adjustment",
+  "PF2E-FLATFINDER.Settings.Incapacitation.Hint": "Replace PF2e's native incapacitation degree-of-success change with the Flatfinder rule: an untyped bonus to the save equal to twice the level difference (max +10) when the target outlevels the source (spells count as twice their rank).",
+
+  "PF2E-FLATFINDER.Settings.EncounterBudget.Name": "Encounter XP budget badge",
+  "PF2E-FLATFINDER.Settings.EncounterBudget.Hint": "Show the Flatfinder (Proficiency-without-Level) encounter XP total and difficulty band at the top of the combat tracker.",
+
+  "PF2E-FLATFINDER.Settings.EliteWeakLevel.Name": "Count Elite/Weak as +/-2 levels",
+  "PF2E-FLATFINDER.Settings.EliteWeakLevel.Hint": "Treat an Elite or Weak creature (native button or the bundled FF effects) as +/-2 levels in the encounter-XP and incapacitation math, as Flatfinder requires. This does not change the creature's sheet, so it stays compatible with pf2e-flatten.",
+
+  "PF2E-FLATFINDER.Competence.Caption": "Competence",
+  "PF2E-FLATFINDER.Competence.Band.Unbelievable": "Unbelievably Bad",
+  "PF2E-FLATFINDER.Competence.Band.Gross": "Gross",
+  "PF2E-FLATFINDER.Competence.Band.Poor": "Poor",
+  "PF2E-FLATFINDER.Competence.Band.Decent": "Decent",
+  "PF2E-FLATFINDER.Competence.Band.Solid": "Solid",
+  "PF2E-FLATFINDER.Competence.Band.Impressive": "Impressive",
+  "PF2E-FLATFINDER.Competence.Band.Amazing": "Amazing",
+  "PF2E-FLATFINDER.Competence.Band.Extraordinary": "Extraordinary",
+  "PF2E-FLATFINDER.Competence.Adjust.Lore": "Lore skill: +1 band (+5)",
+  "PF2E-FLATFINDER.Competence.Adjust.Nat20": "Natural 20: +1 band",
+  "PF2E-FLATFINDER.Competence.Adjust.Nat1": "Natural 1: -1 band",
+  "PF2E-FLATFINDER.Competence.Tooltip.Total": "Check total: {total}",
+
+  "PF2E-FLATFINDER.Incapacitation.Caption": "Incapacitation",
+  "PF2E-FLATFINDER.Incapacitation.Bonus": "Flatfinder bonus +{bonus} to the save",
+  "PF2E-FLATFINDER.Incapacitation.Result": "+{bonus}: {degree}",
+  "PF2E-FLATFINDER.Incapacitation.Tooltip": "Target is {diff} level(s) above the source (target {target} vs source {source}); Flatfinder grants an untyped +{bonus} to the save (twice the level difference, max +10).",
+
+  "PF2E-FLATFINDER.Degree.CriticalFailure": "Critical Failure",
+  "PF2E-FLATFINDER.Degree.Failure": "Failure",
+  "PF2E-FLATFINDER.Degree.Success": "Success",
+  "PF2E-FLATFINDER.Degree.CriticalSuccess": "Critical Success",
+
+  "PF2E-FLATFINDER.Encounter.Title": "Flatfinder XP",
+  "PF2E-FLATFINDER.Encounter.Xp": "{xp} XP",
+  "PF2E-FLATFINDER.Encounter.BudgetShort": "Budget: {budget}",
+  "PF2E-FLATFINDER.Encounter.Severity.Trivial": "Trivial",
+  "PF2E-FLATFINDER.Encounter.Severity.Low": "Low",
+  "PF2E-FLATFINDER.Encounter.Severity.Moderate": "Moderate",
+  "PF2E-FLATFINDER.Encounter.Severity.Severe": "Severe",
+  "PF2E-FLATFINDER.Encounter.Severity.Extreme": "Extreme",
+  "PF2E-FLATFINDER.Encounter.Tooltip.Party": "Party level {level}, {size} PC(s)",
+  "PF2E-FLATFINDER.Encounter.Tooltip.Budget": "Budgets — Trivial {trivial} / Low {low} / Moderate {moderate} / Severe {severe} / Extreme {extreme}"
+}

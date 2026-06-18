@@ -1,0 +1,100 @@
+/* ===========================================================================
+   PF2e Flatfinder — badge styling
+   Tuned to blend with the PF2e sheets and the Dorako UI module themes
+   (works on both light/parchment and dark backgrounds).
+   =========================================================================== */
+
+/* --- Competence-check badge ------------------------------------------------ */
+
+.flatfinder-competence,
+.flatfinder-incapacitation {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin: 0.4em 0 0;
+  padding: 0.3em 0.6em;
+  border-radius: 6px;
+  border-left: 4px solid var(--ff-tier-color, #7a7a7a);
+  background: color-mix(in srgb, var(--ff-tier-color, #7a7a7a) 16%, transparent);
+  font-family: var(--font-primary, var(--font-sans, sans-serif));
+  font-size: var(--font-size-12, 0.75rem);
+  line-height: 1.3;
+}
+
+.flatfinder-competence .ff-caption,
+.flatfinder-incapacitation .ff-caption {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  font-size: 0.85em;
+  opacity: 0.75;
+}
+
+.flatfinder-competence .ff-label,
+.flatfinder-incapacitation .ff-label {
+  font-weight: 700;
+  color: var(--ff-tier-color, inherit);
+  margin-left: auto;
+  text-align: right;
+}
+
+/* Competence tier colours (worst → best). */
+.flatfinder-tier-unbelievable { --ff-tier-color: #6e6e6e; }
+.flatfinder-tier-gross        { --ff-tier-color: #9b3b2e; }
+.flatfinder-tier-poor         { --ff-tier-color: #c0662a; }
+.flatfinder-tier-decent       { --ff-tier-color: #b89a1f; }
+.flatfinder-tier-solid        { --ff-tier-color: #5a8f3c; }
+.flatfinder-tier-impressive   { --ff-tier-color: #2f9183; }
+.flatfinder-tier-amazing      { --ff-tier-color: #3a6fb5; }
+.flatfinder-tier-extraordinary { --ff-tier-color: #7a4bb5; }
+
+/* --- Incapacitation badge -------------------------------------------------- */
+
+.flatfinder-incapacitation {
+  --ff-tier-color: #8a5a1f;
+}
+
+/* --- Encounter XP / difficulty badge in the combat tracker ----------------- */
+
+.flatfinder-encounter-budget {
+  margin: 4px 6px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--ff-sev-color, #888);
+  border-left-width: 5px;
+  background: color-mix(in srgb, var(--ff-sev-color, #888) 18%, transparent);
+  font-size: var(--font-size-12, 0.75rem);
+}
+
+.flatfinder-encounter-budget .ff-eb-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.flatfinder-encounter-budget .ff-eb-title {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.flatfinder-encounter-budget .ff-eb-severity {
+  font-weight: 700;
+  color: var(--ff-sev-color, inherit);
+}
+
+.flatfinder-encounter-budget .ff-eb-detail {
+  margin-top: 2px;
+  opacity: 0.85;
+}
+
+.flatfinder-encounter-budget .ff-eb-xp {
+  font-weight: 700;
+}
+
+.flatfinder-encounter-budget[data-severity="trivial"]  { --ff-sev-color: #5a8f3c; }
+.flatfinder-encounter-budget[data-severity="low"]       { --ff-sev-color: #3a6fb5; }
+.flatfinder-encounter-budget[data-severity="moderate"]  { --ff-sev-color: #b89a1f; }
+.flatfinder-encounter-budget[data-severity="severe"]    { --ff-sev-color: #c0662a; }
+.flatfinder-encounter-budget[data-severity="extreme"]   { --ff-sev-color: #9b2e2e; }
