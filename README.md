@@ -53,17 +53,21 @@ When a character makes a **skill check** (and, optionally, perception checks), a
 - The badge is styled to match PF2e Dorako UI on light and dark themes.
 
 ### Incapacitation adjustment
-When a creature rolls a save against an effect with the **incapacitation** trait, the card is annotated with the Flatfinder bonus — *an untyped bonus equal to twice the level difference, up to +10*, when the target is higher level than the source (a spell counts as level equal to twice its rank). The badge shows the resulting degree of success so the GM can apply the adjusted outcome.
+PF2e's native incapacitation rule improves the target's save by one degree of success. With *Incapacitation adjustment* enabled, that native behavior is **suppressed** and replaced with the Flatfinder rule: when a creature is higher level than the source of an incapacitation effect, it gains an **untyped bonus to the save equal to twice the level difference, up to +10** (a spell counts as level equal to twice its rank). The bonus is added as a real modifier (it shows in the roll breakdown and affects the degree of success), so no manual adjustment is needed. This works by wrapping `game.pf2e.Check.roll`; **lib-wrapper is recommended**.
 
-### Elite / Weak templates
-With *Flatfinder Elite/Weak levels* enabled, applying the native Elite or Weak adjustment on an NPC sheet changes the creature's **level by 2** instead of 1, as Flatfinder requires. The stat (+/-2) and HP changes from the native template are preserved; for base level −1/0/1 creatures, where Flatfinder says not to change HP/damage, use the bundled **FF Adjustments** effects.
+### Elite / Weak templates (and pf2e-flatten)
+**Use the bundled "FF Elite/Weak" effects** to apply the templates — they add a clean +/-2 to all checks/DCs and leave the creature's level alone, which is exactly what's needed alongside [pf2e-flatten](https://github.com/patcharapon-j/pf2e-flatten).
+
+> ⚠️ The **native Elite/Weak button does not work correctly under pf2e-flatten.** pf2e-flatten subtracts the creature's level from every check/DC and re-flattens whenever the level changes; the native button raises level by +1, so re-flattening cancels half of the template's +2. (Earlier versions of this module tried to bump the level on the sheet — that made the problem *worse* and has been removed.)
+
+With *Count Elite/Weak as +/-2 levels* enabled (default), this module treats an Elite/Weak creature — whether adjusted via the **bundled FF effects** or the **native button** — as **+/-2 levels** for the encounter-XP and incapacitation math, *without* touching the sheet, so pf2e-flatten is never disturbed. For base level −1/0/1 creatures, where Flatfinder says not to change HP/damage, use the **FF ... &lt;2** effects.
 
 ### Encounter XP budget & difficulty badge
 As the GM adds PCs and monsters/hazards to the **combat tracker**, a badge at the top shows the total **Flatfinder (Proficiency-without-Level) XP** and the resulting **difficulty band** (Trivial → Extreme), scaled to the party's level and size. Simple hazards count for 20% of a same-level creature; complex hazards count fully. Friendly/neutral NPCs are ignored.
 
 ## Known gaps and issues
 - Competence checks still need the GM to interpret the band into fiction/outcome; the badge only displays the band.
-- The Incapacitation badge is an informational annotation (it does not re-roll the save), because PF2e does not expose a clean pre-roll modifier hook for defender saves.
+- The Incapacitation adjustment relies on the originating effect being discoverable on the save's roll context; for effects where the source level cannot be determined, the roll is left untouched (native behavior).
 - Ritual DCs are not implemented.
 - Several feats are not automated properly.
 - Unified Equipment Quality is not implemented.

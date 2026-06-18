@@ -46,6 +46,16 @@ export function registerSettings() {
     requiresReload: false,
   });
 
+  game.settings.register(MODULE_ID, "eliteWeakLevel", {
+    name: "PF2E-FLATFINDER.Settings.EliteWeakLevel.Name",
+    hint: "PF2E-FLATFINDER.Settings.EliteWeakLevel.Hint",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: true,
+    requiresReload: false,
+  });
+
   game.settings.register(MODULE_ID, "encounterBudget", {
     name: "PF2E-FLATFINDER.Settings.EncounterBudget.Name",
     hint: "PF2E-FLATFINDER.Settings.EncounterBudget.Hint",
@@ -54,15 +64,5 @@ export function registerSettings() {
     type: Boolean,
     default: true,
     requiresReload: false,
-  });
-
-  game.settings.register(MODULE_ID, "eliteWeakLevel", {
-    name: "PF2E-FLATFINDER.Settings.EliteWeakLevel.Name",
-    hint: "PF2E-FLATFINDER.Settings.EliteWeakLevel.Hint",
-    scope: "world",
-    config: true,
-    type: Boolean,
-    default: true,
-    requiresReload: true,
   });
 }

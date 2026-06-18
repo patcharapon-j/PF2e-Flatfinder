@@ -14,6 +14,7 @@ import {
   PWL_XP_BY_DIFF,
 } from "./constants.js";
 import { asElement, getSetting } from "./settings.js";
+import { flatfinderEffectiveLevel } from "./adjustments.js";
 
 function actorLevel(actor) {
   const lvl = actor?.level ?? actor?.system?.details?.level?.value;
@@ -22,7 +23,8 @@ function actorLevel(actor) {
 
 /** XP value of a single threat creature/hazard relative to the party level. */
 function threatXp(actor, partyLevel) {
-  const level = actorLevel(actor);
+  // Use the effective Flatfinder level so Elite/Weak threats count as +/-2 levels.
+  const level = flatfinderEffectiveLevel(actor);
   if (level === null) return 0;
   const diff = Math.max(PWL_DIFF_MIN, Math.min(PWL_DIFF_MAX, level - partyLevel));
   let xp = PWL_XP_BY_DIFF[String(diff)] ?? 0;

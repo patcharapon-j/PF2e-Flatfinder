@@ -11,9 +11,8 @@
 import { MODULE_ID } from "./constants.js";
 import { registerSettings } from "./settings.js";
 import { renderCompetenceBadge } from "./competence.js";
-import { renderIncapacitationBadge } from "./incapacitation.js";
+import { registerIncapacitation } from "./incapacitation.js";
 import { renderEncounterBudget } from "./encounter.js";
-import { registerEliteWeak } from "./templates.js";
 
 Hooks.once("init", () => {
   registerSettings();
@@ -24,21 +23,16 @@ Hooks.once("ready", () => {
     console.warn(`${MODULE_ID} | The Pathfinder 2e system is required; automation disabled.`);
     return;
   }
-  registerEliteWeak();
+  registerIncapacitation();
   console.log(`${MODULE_ID} | Flatfinder automation ready.`);
 });
 
-/** Combined chat-card handler (badges are idempotent and refresh on re-render). */
+/** Chat-card handler (badge is idempotent and refreshes on re-render). */
 function onRenderChatMessage(message, html) {
   try {
     renderCompetenceBadge(message, html);
   } catch (err) {
     console.error(`${MODULE_ID} | Competence badge error`, err);
-  }
-  try {
-    renderIncapacitationBadge(message, html);
-  } catch (err) {
-    console.error(`${MODULE_ID} | Incapacitation badge error`, err);
   }
 }
 

@@ -1,148 +1,156 @@
 /**
  * Flatfinder Incapacitation adjustment.
  *
- * Flatfinder replaces the core Incapacitation rule with:
- *   "A creature of higher level than the source of an incapacitation effect gains
- *    an untyped bonus to its save equal to twice the level difference, up to a
- *    maximum of +10. A spell is treated as level equal to twice its rank."
+ * Flatfinder replaces the core Incapacitation rule (which improves the target's save
+ * by one degree of success) with:
+ *   "A creature of higher level than the source of an incapacitation effect gains an
+ *    untyped bonus to its save equal to twice the level difference, up to a maximum of
+ *    +10. A spell is treated as level equal to twice its rank."
  *
- * PF2e does not expose a clean per-roll modifier-injection hook for defender saves,
- * so this is implemented as a post-roll annotation: when a saving throw against an
- * incapacitation effect resolves, the badge shows the Flatfinder bonus and the
- * resulting degree of success (recomputed against the original DC). The GM applies
- * the adjusted outcome.
+ * To do this we wrap game.pf2e.Check.roll (the single entry point every PF2e check
+ * passes through). For a saving throw against an incapacitation effect we:
+ *   1. Suppress the system's native incapacitation degree-of-success adjustment by
+ *      removing it from context.dosAdjustments (and the "incapacitation" roll option).
+ *   2. Add a real untyped modifier of +2x(level difference) (max +10) to the check
+ *      when the target outlevels the source, so it shows in the breakdown and total.
+ *
+ * Everything is guarded: if anything is missing or unexpected we leave the roll
+ * completely untouched and the native behaviour stands.
  */
 
-import { DEGREE_LABELS } from "./constants.js";
-import { asElement, getSetting } from "./settings.js";
+import { MODULE_ID } from "./constants.js";
+import { getSetting } from "./settings.js";
+import { flatfinderEffectiveLevel } from "./adjustments.js";
 
-/** Resolve the originating item for a save message, if discoverable. */
-function getOriginItem(message, context) {
-  const uuid =
-    message.flags?.pf2e?.origin?.uuid ??
-    context?.origin?.uuid ??
-    context?.item?.uuid ??
-    null;
-  if (!uuid) return null;
-  try {
-    return fromUuidSync(uuid);
-  } catch (err) {
-    return null;
-  }
-}
-
-/** True when this save is against an incapacitation effect. */
-function isIncapacitation(context, item) {
-  const options = context?.options ?? [];
-  if (options.some((o) => typeof o === "string" && o.includes("incapacitation"))) {
-    return true;
+/** Does this save context carry the incapacitation trait? */
+function isIncapacitation(context) {
+  const options = context?.options;
+  if (options) {
+    const has = options instanceof Set ? options.has.bind(options) : null;
+    if (has && has("incapacitation")) return true;
+    const arr = options instanceof Set ? [...options] : Array.isArray(options) ? options : [];
+    if (arr.some((o) => typeof o === "string" && o.includes("incapacitation"))) return true;
   }
   const traits = context?.traits ?? [];
-  if (traits.some((t) => (t?.value ?? t) === "incapacitation")) return true;
-
-  const itemTraits = item?.system?.traits?.value ?? item?.traits ?? [];
-  const list = itemTraits instanceof Set ? [...itemTraits] : itemTraits;
-  return Array.isArray(list) && list.includes("incapacitation");
+  return traits.some((t) => (t?.value ?? t?.name ?? t) === "incapacitation");
 }
 
-/**
- * Effective level of the incapacitation source. A spell counts as twice its rank;
- * everything else uses its own level.
- */
-function getSourceLevel(item, context) {
-  if (!item) {
-    // Fall back to an origin:level: roll option when present.
-    const opt = (context?.options ?? []).find((o) =>
-      /^origin:(?:item:)?level:-?\d+$/.test(o ?? "")
-    );
-    if (opt) return Number(opt.split(":").pop());
-    return null;
+/** Resolve the originating item for the effect, if present on the context. */
+function getOriginItem(context) {
+  return context?.item ?? context?.origin?.item ?? context?.origin ?? null;
+}
+
+/** Effective Flatfinder level of the incapacitation source (spell = 2x rank). */
+function getSourceLevel(context) {
+  const item = getOriginItem(context);
+  if (item) {
+    if (item.type === "spell") {
+      const rank = item.rank ?? item.system?.level?.value ?? item.level;
+      if (typeof rank === "number") return rank * 2;
+    }
+    const level = item.level ?? item.system?.details?.level?.value ?? item.system?.level?.value;
+    if (typeof level === "number") return level;
   }
-  if (item.type === "spell") {
-    const rank = item.rank ?? item.system?.level?.value ?? item.level;
-    return typeof rank === "number" ? rank * 2 : null;
+  // Fall back to an origin level roll option, e.g. "origin:level:6".
+  const options = context?.options instanceof Set ? [...context.options] : context?.options ?? [];
+  const opt = options.find((o) => /^origin:(?:item:)?level:-?\d+$/.test(o ?? ""));
+  if (opt) return Number(opt.split(":").pop());
+  return null;
+}
+
+/** Remove the system's incapacitation degree-of-success adjustment from the context. */
+function suppressNativeIncapacitation(context) {
+  if (Array.isArray(context.dosAdjustments)) {
+    context.dosAdjustments = context.dosAdjustments.filter((adjustment) => {
+      try {
+        return !JSON.stringify(adjustment).toLowerCase().includes("incapacitation");
+      } catch (err) {
+        return true;
+      }
+    });
   }
-  const level = item.level ?? item.system?.details?.level?.value ?? item.system?.level?.value;
-  return typeof level === "number" ? level : null;
+  if (context.options instanceof Set) context.options.delete("incapacitation");
 }
 
-function naturalD20(roll) {
-  const die = roll?.dice?.find((d) => d.faces === 20);
-  if (!die) return null;
-  const active = die.results?.find((r) => r.active) ?? die.results?.[0];
-  return active?.result ?? die.total ?? null;
+/** Add the Flatfinder untyped bonus to a CheckModifier, recalculating its total. */
+function addFlatfinderModifier(check, bonus) {
+  const ModifierCls = game.pf2e?.Modifier;
+  if (!ModifierCls) return false;
+  const modifier = new ModifierCls({
+    slug: "flatfinder-incapacitation",
+    label: game.i18n.localize("PF2E-FLATFINDER.Incapacitation.Caption"),
+    modifier: bonus,
+    type: "untyped",
+  });
+  if (typeof check.push === "function") {
+    check.push(modifier);
+  } else if (Array.isArray(check.modifiers)) {
+    check.modifiers.push(modifier);
+    check.calculateTotal?.(check.options ?? new Set());
+  } else {
+    return false;
+  }
+  return true;
 }
 
-/** Degree of success (0..3) for a total vs DC, including nat 1/20 shifts. */
-function degreeOfSuccess(total, dc, natural) {
-  const delta = total - dc;
-  let degree;
-  if (delta >= 10) degree = 3;
-  else if (delta >= 0) degree = 2;
-  else if (delta <= -10) degree = 0;
-  else degree = 1;
-
-  if (natural === 20) degree = Math.min(degree + 1, 3);
-  else if (natural === 1) degree = Math.max(degree - 1, 0);
-  return degree;
-}
-
-export function renderIncapacitationBadge(message, html) {
-  const root = asElement(html);
-  if (!root) return;
-  root.querySelector(".flatfinder-incapacitation")?.remove();
-
+/** Core logic, mutating check/context in place when the Flatfinder rule applies. */
+function applyFlatfinderIncapacitation(check, context) {
   if (!getSetting("incapacitation")) return;
-
-  const context = message.flags?.pf2e?.context;
   if (context?.type !== "saving-throw") return;
+  if (!isIncapacitation(context)) return;
 
-  const item = getOriginItem(message, context);
-  if (!isIncapacitation(context, item)) return;
-
-  const actor = message.actor;
-  const targetLevel = actor?.level ?? actor?.system?.details?.level?.value;
-  const sourceLevel = getSourceLevel(item, context);
+  const targetActor = context.actor ?? context.self?.actor;
+  const targetLevel = flatfinderEffectiveLevel(targetActor);
+  const sourceLevel = getSourceLevel(context);
   if (typeof targetLevel !== "number" || typeof sourceLevel !== "number") return;
 
   const diff = targetLevel - sourceLevel;
   if (diff <= 0) return; // Only a higher-level target benefits.
 
   const bonus = Math.min(diff * 2, 10);
+  if (bonus <= 0) return;
 
-  const roll = message.rolls?.[0];
-  const dc = context?.dc?.value;
-  let resultLine = game.i18n.format("PF2E-FLATFINDER.Incapacitation.Bonus", { bonus });
+  // Build the modifier first (most likely point of failure) before mutating anything.
+  if (!addFlatfinderModifier(check, bonus)) return;
+  suppressNativeIncapacitation(context);
+}
 
-  if (roll && typeof roll.total === "number" && typeof dc === "number") {
-    const natural = naturalD20(roll);
-    const before = degreeOfSuccess(roll.total, dc, natural);
-    const after = degreeOfSuccess(roll.total + bonus, dc, natural);
-    const afterLabel = game.i18n.localize(DEGREE_LABELS[after]);
-    resultLine = game.i18n.format("PF2E-FLATFINDER.Incapacitation.Result", {
-      bonus,
-      degree: afterLabel,
-    });
-    if (after !== before) {
-      const beforeLabel = game.i18n.localize(DEGREE_LABELS[before]);
-      resultLine += ` (${beforeLabel} → ${afterLabel})`;
-    }
+/**
+ * Install the Check.roll wrapper. Prefers libWrapper but falls back to a guarded
+ * monkeypatch so the feature works without it.
+ */
+export function registerIncapacitation() {
+  if (!game.pf2e?.Check?.roll) {
+    console.warn(`${MODULE_ID} | game.pf2e.Check.roll unavailable; Incapacitation adjustment disabled.`);
+    return;
   }
 
-  const badge = document.createElement("div");
-  badge.className = "flatfinder-incapacitation";
-  badge.dataset.tooltip = game.i18n.format("PF2E-FLATFINDER.Incapacitation.Tooltip", {
-    diff,
-    bonus,
-    target: targetLevel,
-    source: sourceLevel,
-  });
-  badge.innerHTML =
-    `<span class="ff-caption">${game.i18n.localize("PF2E-FLATFINDER.Incapacitation.Caption")}</span>` +
-    `<span class="ff-label">${resultLine}</span>`;
+  const wrap = (check, context) => {
+    try {
+      applyFlatfinderIncapacitation(check, context);
+    } catch (err) {
+      console.error(`${MODULE_ID} | Incapacitation adjustment error`, err);
+    }
+  };
 
-  const content = root.querySelector(".message-content") ?? root;
-  const diceRoll = content.querySelector(".dice-roll");
-  if (diceRoll) diceRoll.insertAdjacentElement("afterend", badge);
-  else content.appendChild(badge);
+  if (globalThis.libWrapper) {
+    libWrapper.register(
+      MODULE_ID,
+      "game.pf2e.Check.roll",
+      function (wrapped, check, context = {}, ...rest) {
+        wrap(check, context);
+        return wrapped(check, context, ...rest);
+      },
+      "WRAPPER"
+    );
+  } else {
+    const Check = game.pf2e.Check;
+    const original = Check.roll.bind(Check);
+    Check.roll = function (check, context = {}, ...rest) {
+      wrap(check, context);
+      return original(check, context, ...rest);
+    };
+  }
+
+  console.log(`${MODULE_ID} | Flatfinder Incapacitation adjustment active.`);
 }
