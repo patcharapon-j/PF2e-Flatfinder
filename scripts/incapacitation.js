@@ -21,6 +21,7 @@
 import { MODULE_ID } from "./constants.js";
 import { getSetting } from "./settings.js";
 import { flatfinderEffectiveLevel } from "./adjustments.js";
+import { registerWrapper, WRAPPER } from "./lib/wrapper.js";
 
 /** Does this save context carry the incapacitation trait? */
 function isIncapacitation(context) {
@@ -116,8 +117,8 @@ function applyFlatfinderIncapacitation(check, context) {
 }
 
 /**
- * Install the Check.roll wrapper. Prefers libWrapper but falls back to a guarded
- * monkeypatch so the feature works without it.
+ * Install the Check.roll wrapper through the libWrapper integration layer (real
+ * lib-wrapper when installed, guarded fallback otherwise).
  */
 export function registerIncapacitation() {
   if (!game.pf2e?.Check?.roll) {
@@ -125,32 +126,27 @@ export function registerIncapacitation() {
     return;
   }
 
-  const wrap = (check, context) => {
-    try {
-      applyFlatfinderIncapacitation(check, context);
-    } catch (err) {
-      console.error(`${MODULE_ID} | Incapacitation adjustment error`, err);
-    }
-  };
-
-  if (globalThis.libWrapper) {
-    libWrapper.register(
-      MODULE_ID,
+  try {
+    const backend = registerWrapper(
       "game.pf2e.Check.roll",
       function (wrapped, check, context = {}, ...rest) {
-        wrap(check, context);
+        try {
+          applyFlatfinderIncapacitation(check, context);
+        } catch (err) {
+          console.error(`${MODULE_ID} | Incapacitation adjustment error`, err);
+        }
         return wrapped(check, context, ...rest);
       },
-      "WRAPPER"
+      WRAPPER
     );
-  } else {
-    const Check = game.pf2e.Check;
-    const original = Check.roll.bind(Check);
-    Check.roll = function (check, context = {}, ...rest) {
-      wrap(check, context);
-      return original(check, context, ...rest);
-    };
-  }
+    console.log(`${MODULE_ID} | Flatfinder Incapacitation adjustment active (${backend}).`);
 
-  console.log(`${MODULE_ID} | Flatfinder Incapacitation adjustment active.`);
+    if (backend === "fallback" && game.user?.isGM) {
+      console.warn(
+        `${MODULE_ID} | lib-wrapper is not installed; using a built-in fallback for the Check.roll wrap. Installing lib-wrapper is recommended for best compatibility.`
+      );
+    }
+  } catch (err) {
+    console.error(`${MODULE_ID} | Failed to register the Incapacitation wrapper`, err);
+  }
 }
