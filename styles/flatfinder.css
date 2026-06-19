@@ -320,31 +320,20 @@
 
 /* ===========================================================================
    Apex (solo boss) — the NPC sheet itself reads as Apex.
-   A signal-amber frame on the window, an accent line under the titlebar, and an
-   etched "APEX" emblem banner at the top of the sheet body. Purely additive: it
-   decorates the window chrome and prepends one banner, never touching the
-   system's own sheet layout.
+   We deliberately do NOT bloom the window: an outer box-shadow glow on the sheet
+   spills past the window and tints the PF2e token HUD that overlays it. Instead
+   the Apex state reads from the etched "APEX" emblem banner inside the sheet body
+   (below) plus a contained amber accent on the crown control. Purely additive: it
+   prepends one banner and tints one control, never touching the system layout.
    =========================================================================== */
 .flatfinder-apex-sheet {
   --ff-apex: #ffd24a;
-  /* Amber hairline ring + outer bloom, with a depth shadow so we don't lose the
-     window's elevation when we override box-shadow. */
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--ff-apex) 70%, transparent),
-    0 0 30px color-mix(in srgb, var(--ff-apex) 22%, transparent),
-    0 10px 34px rgba(0, 0, 0, 0.55) !important;
 }
 
-/* Accent line under the titlebar (covers V1 .window-header and V2 chrome). */
-.flatfinder-apex-sheet .window-header {
-  border-bottom: 1px solid color-mix(in srgb, var(--ff-apex) 55%, transparent);
-  box-shadow: 0 1px 12px color-mix(in srgb, var(--ff-apex) 30%, transparent);
-}
-
-/* The crown control in the titlebar glows so the Apex state is obvious. */
+/* The crown control in the titlebar tints amber so the Apex state is obvious.
+   No drop-shadow glow — a filter bloom here bleeds onto adjacent UI. */
 .flatfinder-apex-sheet .flatfinder-apex-config {
   color: var(--ff-apex);
-  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--ff-apex) 60%, transparent));
 }
 
 /* Etched "APEX" emblem banner — GL Universe glass slab, signal-amber accent. */
@@ -414,6 +403,37 @@
   font-weight: 700;
   font-size: 0.6rem;
   color: var(--gl-text-dim);
+}
+
+/* Counteract action on the emblem — roll the boss's once-per-turn condition
+   counteract straight from the sheet, not only from the combat tracker. */
+.flatfinder-apex-emblem .flatfinder-apex-emblem-counteract {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  margin: 0;
+  padding: 0.2em 0.6em;
+  flex: 0 0 auto;
+  cursor: pointer;
+  font-family: var(--gl-tech);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  font-size: 0.6rem;
+  line-height: 1;
+  color: var(--gl-text-bright);
+  background: color-mix(in srgb, var(--ff-apex) 14%, var(--gl-ink-1));
+  border: 1px solid color-mix(in srgb, var(--ff-apex) 45%, transparent);
+  border-radius: 5px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.flatfinder-apex-emblem .flatfinder-apex-emblem-counteract > i {
+  color: var(--ff-apex);
+  font-size: 0.85em;
+}
+.flatfinder-apex-emblem .flatfinder-apex-emblem-counteract:hover {
+  background: color-mix(in srgb, var(--ff-apex) 26%, var(--gl-ink-1));
+  border-color: color-mix(in srgb, var(--ff-apex) 70%, transparent);
 }
 
 /* ===========================================================================

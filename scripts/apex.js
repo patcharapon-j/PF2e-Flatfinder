@@ -299,10 +299,13 @@ function addApexHeaderControl(app, controls) {
 }
 
 /**
- * Mark the whole NPC sheet as Apex so its content reads as a solo boss at a
- * glance: an amber signal frame on the window, a crown accent in the header, and
- * an etched "APEX" emblem pinned to the sheet. The treatment tracks the live
- * config — toggling Apex off (or disabling the feature) strips it on re-render.
+ * Mark the NPC sheet as Apex so its content reads as a solo boss at a glance:
+ * an etched "APEX" emblem banner pinned to the top of the sheet body (carrying a
+ * one-click counteract action for the GM) plus a contained amber tint on the
+ * crown control. We deliberately avoid an outer window glow — its bloom spills
+ * past the sheet and tints the PF2e token HUD that overlays it. The treatment
+ * tracks the live config — toggling Apex off (or disabling the feature) strips
+ * it on re-render.
  */
 function decorateApexSheet(app, html) {
   const actor = getActorFromSheet(app);
@@ -340,6 +343,28 @@ function decorateApexSheet(app, html) {
     <i class="fa-solid fa-crown" aria-hidden="true"></i>
     <span class="ff-apex-emblem-label">${game.i18n.localize("PF2E-FLATFINDER.Apex.Sheet.Emblem")}</span>
     <span class="ff-apex-emblem-turns">${game.i18n.format("PF2E-FLATFINDER.Apex.Sheet.Turns", { turns })}</span>`;
+
+  // A counteract action lives on the sheet too, so the GM can roll the boss's
+  // once-per-turn condition counteract without opening the combat tracker
+  // (Flatfinder §8, Component 3). innerHTML above resets the emblem each render,
+  // so we always (re)build the button and its listener here.
+  if (game.user?.isGM) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "flatfinder-apex-emblem-counteract";
+    btn.dataset.tooltip = game.i18n.localize("PF2E-FLATFINDER.Apex.Counteract.Button");
+    btn.innerHTML = `
+      <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+      <span>${game.i18n.localize("PF2E-FLATFINDER.Apex.Counteract.SheetButton")}</span>`;
+    btn.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      apexCounteract(actor).catch((err) =>
+        console.error(`${MODULE_ID} | Apex counteract error`, err)
+      );
+    });
+    emblem.appendChild(btn);
+  }
 }
 
 /** Inject a titlebar button directly (covers sheets that don't fire the above). */
