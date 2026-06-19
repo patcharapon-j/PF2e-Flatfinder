@@ -72,6 +72,7 @@ jobs:
             module.json \
             scripts \
             styles \
+            fonts \
             lang \
             packs \
             README.md

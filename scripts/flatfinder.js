@@ -15,6 +15,7 @@ import { renderCompetenceBadge } from "./competence.js";
 import { registerIncapacitation } from "./incapacitation.js";
 import { registerFlattenDc } from "./flatten.js";
 import { renderEncounterBudget } from "./encounter.js";
+import { registerApex, decorateApexTracker } from "./apex.js";
 
 Hooks.once("init", () => {
   registerSettings();
@@ -27,6 +28,7 @@ Hooks.once("ready", () => {
   }
   registerIncapacitation();
   registerFlattenDc();
+  registerApex();
   console.log(`${MODULE_ID} | Flatfinder automation ready.`);
 });
 
@@ -47,5 +49,10 @@ Hooks.on("renderCombatTracker", (app, html) => {
     renderEncounterBudget(app, html);
   } catch (err) {
     console.error(`${MODULE_ID} | Encounter budget error`, err);
+  }
+  try {
+    decorateApexTracker(app, html);
+  } catch (err) {
+    console.error(`${MODULE_ID} | Apex tracker decoration error`, err);
   }
 });

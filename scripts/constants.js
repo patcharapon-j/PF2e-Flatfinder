@@ -5,19 +5,19 @@
 export const MODULE_ID = "pf2e-flatfinder";
 
 /**
- * Competence-check thresholds (Flatfinder v2.2, "Table: Competence Check thresholds").
+ * Competence-check thresholds (Flatfinder v3, §3 "Competence Checks").
  * Bands are ordered from worst (index 0) to best (index 7). A roll's band is the
  * highest band whose `min` is <= the check total. Totals below 0 fall into index 0.
  */
 export const COMPETENCE_BANDS = [
-  { key: "unbelievable", min: -Infinity, label: "PF2E-FLATFINDER.Competence.Band.Unbelievable" },
-  { key: "gross", min: 0, label: "PF2E-FLATFINDER.Competence.Band.Gross" },
+  { key: "disastrous", min: -Infinity, label: "PF2E-FLATFINDER.Competence.Band.Disastrous" },
+  { key: "inept", min: 0, label: "PF2E-FLATFINDER.Competence.Band.Inept" },
   { key: "poor", min: 5, label: "PF2E-FLATFINDER.Competence.Band.Poor" },
-  { key: "decent", min: 10, label: "PF2E-FLATFINDER.Competence.Band.Decent" },
+  { key: "passable", min: 10, label: "PF2E-FLATFINDER.Competence.Band.Passable" },
   { key: "solid", min: 15, label: "PF2E-FLATFINDER.Competence.Band.Solid" },
   { key: "impressive", min: 20, label: "PF2E-FLATFINDER.Competence.Band.Impressive" },
-  { key: "amazing", min: 25, label: "PF2E-FLATFINDER.Competence.Band.Amazing" },
-  { key: "extraordinary", min: 30, label: "PF2E-FLATFINDER.Competence.Band.Extraordinary" },
+  { key: "remarkable", min: 25, label: "PF2E-FLATFINDER.Competence.Band.Remarkable" },
+  { key: "phenomenal", min: 30, label: "PF2E-FLATFINDER.Competence.Band.Phenomenal" },
 ];
 
 /**
@@ -56,6 +56,26 @@ export const ENCOUNTER_BUDGET = {
   severe: { base: 120, perPc: 30 },
   extreme: { base: 160, perPc: 40 },
 };
+
+/**
+ * Apex (solo boss) template — Flatfinder v3 §8 "The Apex (Solo Boss) template".
+ * A creature flagged as Apex takes extra full turns each round: its Prime turn at
+ * its rolled initiative, then an additional turn at (result − 10), a third at
+ * (result − 20), and so on. `turns` is the total number of turns per round.
+ */
+export const APEX_FLAG = "apex";
+export const APEX_PRIME_FLAG = "apexPrime";
+export const APEX_EXTRA_FLAG = "apexExtra";
+export const APEX_PHASES_FLAG = "apexPhasesFired";
+export const APEX_DEFAULTS = Object.freeze({ enabled: false, turns: 2 });
+export const APEX_TURNS_LIMITS = Object.freeze({ min: 2, max: 4 });
+/** Initiative gap between consecutive Apex turns (Flatfinder: −10 per extra turn). */
+export const APEX_INITIATIVE_STEP = 10;
+/** HP fractions that trigger an Apex phase beat (Flatfinder §8: 66% and 33%). */
+export const APEX_PHASE_THRESHOLDS = Object.freeze([0.66, 0.33]);
+
+/** The sibling module whose Card initiative mode owns multi-turn bosses itself. */
+export const GLUNI_MODULE_ID = "gluniverse-initiative";
 
 export const DEGREE_LABELS = [
   "PF2E-FLATFINDER.Degree.CriticalFailure",
