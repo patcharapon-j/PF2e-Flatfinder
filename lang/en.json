@@ -46,6 +46,10 @@
   "PF2E-FLATFINDER.Apex.Counteract.Note": "Counteract level {level} (full creature level). Compare to the condition's DC; the boss must have suffered it for a full turn, once per turn, as an action.",
   "PF2E-FLATFINDER.Apex.Counteract.NoSave": "Flatfinder: could not read this creature's saving-throw modifiers for an Apex counteract.",
 
+  "PF2E-FLATFINDER.Apex.Sheet.Emblem": "APEX",
+  "PF2E-FLATFINDER.Apex.Sheet.Turns": "{turns} turns/round",
+  "PF2E-FLATFINDER.Apex.Sheet.Tooltip": "This NPC is a Flatfinder Apex solo boss. It takes extra full turns each round; configure it with the crown button in the sheet's titlebar.",
+
   "PF2E-FLATFINDER.Settings.EliteWeakLevel.Name": "Count Elite/Weak as +/-2 levels",
   "PF2E-FLATFINDER.Settings.EliteWeakLevel.Hint": "Treat an Elite or Weak creature (native button or the bundled FF effects) as +/-2 levels in the encounter-XP and incapacitation math, as Flatfinder requires. This does not change the creature's sheet, so it stays compatible with pf2e-flatten.",
 

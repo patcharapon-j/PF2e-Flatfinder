@@ -297,6 +297,50 @@ function addApexHeaderControl(app, controls) {
   });
 }
 
+/**
+ * Mark the whole NPC sheet as Apex so its content reads as a solo boss at a
+ * glance: an amber signal frame on the window, a crown accent in the header, and
+ * an etched "APEX" emblem pinned to the sheet. The treatment tracks the live
+ * config — toggling Apex off (or disabling the feature) strips it on re-render.
+ */
+function decorateApexSheet(app, html) {
+  const actor = getActorFromSheet(app);
+  if (!actor || actor.type !== "npc") return;
+
+  const element = asElement(html) ?? asElement(app?.element) ?? app?.element;
+  const root = element?.closest?.(".app, .application, .window-app") ?? element;
+  if (!root) return;
+
+  const isApex = getSetting("apexTurns") && isApexActor(actor);
+
+  if (!isApex) {
+    root.classList.remove("flatfinder-apex-sheet");
+    root.removeAttribute("data-apex-turns");
+    root.querySelector(".flatfinder-apex-emblem")?.remove();
+    return;
+  }
+
+  const { turns } = getApexConfig(actor);
+  root.classList.add("flatfinder-apex-sheet");
+  root.dataset.apexTurns = String(turns);
+
+  // The emblem sits as a banner at the top of the sheet body so the content
+  // itself — not just the window chrome — reads as Apex.
+  const content = root.querySelector(".window-content") ?? root;
+  let emblem = root.querySelector(".flatfinder-apex-emblem");
+  if (!emblem || emblem.parentElement !== content) {
+    emblem?.remove();
+    emblem = document.createElement("div");
+    emblem.className = "flatfinder-apex-emblem";
+    content.prepend(emblem);
+  }
+  emblem.dataset.tooltip = game.i18n.localize("PF2E-FLATFINDER.Apex.Sheet.Tooltip");
+  emblem.innerHTML = `
+    <i class="fa-solid fa-crown" aria-hidden="true"></i>
+    <span class="ff-apex-emblem-label">${game.i18n.localize("PF2E-FLATFINDER.Apex.Sheet.Emblem")}</span>
+    <span class="ff-apex-emblem-turns">${game.i18n.format("PF2E-FLATFINDER.Apex.Sheet.Turns", { turns })}</span>`;
+}
+
 /** Inject a titlebar button directly (covers sheets that don't fire the above). */
 function injectApexTitlebarButton(app, html) {
   const actor = getActorFromSheet(app);
@@ -523,6 +567,11 @@ export function registerApex() {
   Hooks.on("renderApplicationV1", injectApexTitlebarButton);
   Hooks.on("renderApplicationV2", injectApexTitlebarButton);
   Hooks.on("renderActorSheet", injectApexTitlebarButton);
+
+  // Make the sheet content itself read as Apex (frame, header accent, emblem).
+  Hooks.on("renderApplicationV1", decorateApexSheet);
+  Hooks.on("renderApplicationV2", decorateApexSheet);
+  Hooks.on("renderActorSheet", decorateApexSheet);
 
   // Combat synchronisation.
   Hooks.on("updateCombatant", (combatant, changed) => {
