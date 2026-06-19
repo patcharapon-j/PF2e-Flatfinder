@@ -76,6 +76,26 @@ export function registerSettings() {
     requiresReload: false,
   });
 
+  game.settings.register(MODULE_ID, "apexPerTurnGuard", {
+    name: "PF2E-FLATFINDER.Settings.ApexPerTurnGuard.Name",
+    hint: "PF2E-FLATFINDER.Settings.ApexPerTurnGuard.Hint",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: true,
+    requiresReload: false,
+  });
+
+  game.settings.register(MODULE_ID, "apexPhases", {
+    name: "PF2E-FLATFINDER.Settings.ApexPhases.Name",
+    hint: "PF2E-FLATFINDER.Settings.ApexPhases.Hint",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: true,
+    requiresReload: false,
+  });
+
   game.settings.register(MODULE_ID, "encounterBudget", {
     name: "PF2E-FLATFINDER.Settings.EncounterBudget.Name",
     hint: "PF2E-FLATFINDER.Settings.EncounterBudget.Hint",

@@ -27,12 +27,15 @@ import {
   APEX_EXTRA_FLAG,
   APEX_FLAG,
   APEX_INITIATIVE_STEP,
+  APEX_PHASE_THRESHOLDS,
+  APEX_PHASES_FLAG,
   APEX_PRIME_FLAG,
   APEX_TURNS_LIMITS,
   GLUNI_MODULE_ID,
   MODULE_ID,
 } from "./constants.js";
 import { asElement, getSetting } from "./settings.js";
+import { registerWrapper, WRAPPER } from "./lib/wrapper.js";
 
 /* --------------------------------------------------------------------------- *
  * Small shared helpers
@@ -355,7 +358,156 @@ export function decorateApexTracker(app, html) {
     const name = row.querySelector(".token-name, .combatant-name, h4, .name");
     if (name) name.appendChild(tag);
     else row.appendChild(tag);
+
+    // Prime rows get a one-click counteract action for the GM (Component 3).
+    if (prime && game.user?.isGM && !row.querySelector(".flatfinder-apex-counteract-btn")) {
+      const btn = document.createElement("a");
+      btn.className = "flatfinder-apex-counteract-btn";
+      btn.dataset.tooltip = game.i18n.localize("PF2E-FLATFINDER.Apex.Counteract.Button");
+      btn.innerHTML = `<i class="fa-solid fa-shield-halved" aria-hidden="true"></i>`;
+      btn.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        apexCounteract(combatant.actor).catch((err) =>
+          console.error(`${MODULE_ID} | Apex counteract error`, err)
+        );
+      });
+      tag.insertAdjacentElement("afterend", btn);
+    }
   }
+}
+
+/* --------------------------------------------------------------------------- *
+ * Component 1 (per-turn-effects guard) — Flatfinder §8:
+ *   "Per-turn effects only resolve on the Prime turn."
+ * PF2e processes persistent damage, condition reduction (frightened, etc.) and
+ * turn-based effect expiry in CombatantPF2e#startTurn / #endTurn. We skip those
+ * for our extra-turn combatants so they never fire twice in a round.
+ * --------------------------------------------------------------------------- */
+
+function registerApexTurnGuard() {
+  const proto = CONFIG?.Combatant?.documentClass?.prototype;
+  if (!proto) return;
+
+  for (const method of ["startTurn", "endTurn"]) {
+    if (typeof proto[method] !== "function") continue;
+    try {
+      registerWrapper(
+        `CONFIG.Combatant.documentClass.prototype.${method}`,
+        function (wrapped, ...args) {
+          try {
+            if (getSetting("apexTurns") && getSetting("apexPerTurnGuard") && extraData(this)) {
+              // An extra Apex turn is a fresh turn for the action economy, but its
+              // per-turn effects do NOT resolve — only the Prime turn's do.
+              return method === "endTurn" ? Promise.resolve() : undefined;
+            }
+          } catch (err) {
+            console.error(`${MODULE_ID} | Apex per-turn guard error`, err);
+          }
+          return wrapped(...args);
+        },
+        WRAPPER
+      );
+    } catch (err) {
+      console.error(`${MODULE_ID} | Failed to wrap Combatant.${method}`, err);
+    }
+  }
+}
+
+/* --------------------------------------------------------------------------- *
+ * Component 4 (HP phases) — Flatfinder §8:
+ *   Crossing 66% / 33% HP triggers a beat: a free turn, shedding one condition,
+ *   and a tactics shift. We fire a once-per-threshold reminder for the GM.
+ * --------------------------------------------------------------------------- */
+
+async function postPhaseCard(combatant, threshold, fraction) {
+  const pct = Math.round(threshold * 100);
+  const hpPct = Math.round(fraction * 100);
+  const L = (k) => game.i18n.localize(k);
+  const content = `
+    <div class="flatfinder-apex-phase">
+      <div class="ff-ap-head">
+        <span class="ff-ap-kicker">${L("PF2E-FLATFINDER.Apex.Phase.Kicker")}</span>
+        <span class="ff-ap-name">${foundry.utils.escapeHTML?.(combatant.name) ?? combatant.name}</span>
+        <span class="ff-ap-hp">${game.i18n.format("PF2E-FLATFINDER.Apex.Phase.At", { pct, hp: hpPct })}</span>
+      </div>
+      <ul class="ff-ap-beats">
+        <li>${L("PF2E-FLATFINDER.Apex.Phase.FreeTurn")}</li>
+        <li>${L("PF2E-FLATFINDER.Apex.Phase.ShedCondition")}</li>
+        <li>${L("PF2E-FLATFINDER.Apex.Phase.Tactics")}</li>
+      </ul>
+    </div>`;
+
+  await ChatMessage.create({
+    content,
+    speaker: ChatMessage.getSpeaker({ actor: combatant.actor }),
+    whisper: ChatMessage.getWhisperRecipients("GM").map((u) => u.id),
+    flags: { [MODULE_ID]: { apexPhase: true } },
+  });
+}
+
+async function checkApexPhases(actor) {
+  if (!isActiveGM() || !getSetting("apexTurns") || !getSetting("apexPhases")) return;
+  if (!isApexActor(actor)) return;
+
+  const hp = actor.system?.attributes?.hp;
+  if (!hp || !hp.max) return;
+  const fraction = hp.value / hp.max;
+
+  for (const combat of game.combats ?? []) {
+    if (!combat.started) continue;
+    for (const c of combat.combatants) {
+      if (extraData(c) || c.actor?.id !== actor.id) continue;
+      const fired = [...(c.getFlag(MODULE_ID, APEX_PHASES_FLAG) ?? [])];
+      let changed = false;
+      for (const threshold of APEX_PHASE_THRESHOLDS) {
+        if (fraction <= threshold && !fired.includes(threshold)) {
+          fired.push(threshold);
+          changed = true;
+          await postPhaseCard(c, threshold, fraction);
+        }
+      }
+      if (changed) await c.setFlag(MODULE_ID, APEX_PHASES_FLAG, fired);
+    }
+  }
+}
+
+/* --------------------------------------------------------------------------- *
+ * Component 3 (condition resilience) — Flatfinder §8:
+ *   Once per turn, as an action, the boss may counteract a condition it has
+ *   suffered for a full turn, using its highest save modifier and counteracting
+ *   at its full creature level. We roll the check and post it; the GM applies it.
+ * --------------------------------------------------------------------------- */
+
+function highestSaveMod(actor) {
+  const saves = actor?.saves ?? {};
+  let best = -Infinity;
+  for (const key of ["fortitude", "reflex", "will"]) {
+    const mod = saves[key]?.mod ?? saves[key]?.check?.mod ?? saves[key]?.totalModifier;
+    if (typeof mod === "number") best = Math.max(best, mod);
+  }
+  return Number.isFinite(best) ? best : null;
+}
+
+export async function apexCounteract(actor) {
+  if (!actor) return;
+  const mod = highestSaveMod(actor);
+  if (mod === null) {
+    ui.notifications?.warn(game.i18n.localize("PF2E-FLATFINDER.Apex.Counteract.NoSave"));
+    return;
+  }
+  const level = actor.level ?? actor.system?.details?.level?.value ?? 0;
+  const roll = await new Roll("1d20 + @mod", { mod }).evaluate();
+  const flavor = `
+    <div class="flatfinder-apex-counteract">
+      <span class="ff-ac-kicker">${game.i18n.localize("PF2E-FLATFINDER.Apex.Counteract.Kicker")}</span>
+      <span class="ff-ac-note">${game.i18n.format("PF2E-FLATFINDER.Apex.Counteract.Note", { level })}</span>
+    </div>`;
+  await roll.toMessage({
+    speaker: ChatMessage.getSpeaker({ actor }),
+    flavor,
+    flags: { [MODULE_ID]: { apexCounteract: true } },
+  });
 }
 
 /* --------------------------------------------------------------------------- *
@@ -402,11 +554,32 @@ export function registerApex() {
 
   Hooks.on("updateActor", (actor, changed) => {
     const ff = changed?.flags?.[MODULE_ID];
-    if (!ff || !(APEX_FLAG in ff)) return;
-    resyncActor(actor).catch((err) =>
-      console.error(`${MODULE_ID} | Apex resync error`, err)
-    );
+    if (ff && APEX_FLAG in ff) {
+      resyncActor(actor).catch((err) =>
+        console.error(`${MODULE_ID} | Apex resync error`, err)
+      );
+    }
+    // HP-phase beats (Component 4) — react to a hit-point change.
+    if (changed?.system?.attributes?.hp) {
+      checkApexPhases(actor).catch((err) =>
+        console.error(`${MODULE_ID} | Apex phase error`, err)
+      );
+    }
   });
+
+  // Unlinked-token bosses carry their HP on the token delta, not the world actor.
+  Hooks.on("updateToken", (tokenDoc, changed) => {
+    if (!changed?.delta && !changed?.actorData) return;
+    const actor = tokenDoc?.actor;
+    if (actor) {
+      checkApexPhases(actor).catch((err) =>
+        console.error(`${MODULE_ID} | Apex phase error`, err)
+      );
+    }
+  });
+
+  // Per-turn-effects guard (Component 1) — wrap the system's turn processing.
+  registerApexTurnGuard();
 
   // Public API for macros / other modules.
   const mod = game.modules?.get(MODULE_ID);
@@ -415,6 +588,7 @@ export function registerApex() {
       configureApex: openApexConfigDialog,
       getApexConfig,
       isApexActor,
+      apexCounteract,
     });
   }
 }

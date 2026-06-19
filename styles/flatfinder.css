@@ -304,6 +304,104 @@
   border: 1px solid color-mix(in srgb, #b497ff 55%, transparent);
 }
 
+/* Counteract action button on the prime row. */
+.combatant .flatfinder-apex-counteract-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.3em;
+  width: 1.5em;
+  height: 1.5em;
+  color: var(--gl-signal, #ffd24a);
+  cursor: pointer;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--gl-signal, #ffd24a) 55%, transparent));
+}
+.combatant .flatfinder-apex-counteract-btn:hover { color: var(--gl-signal-hot, #ffe070); }
+
+/* ===========================================================================
+   Apex chat cards (phase break + counteract) — etched glass, on chat.
+   =========================================================================== */
+.flatfinder-apex-phase {
+  --ff-accent: #b497ff;
+  position: relative;
+  margin: 0.2em 0;
+  padding: 0.5em 0.7em 0.5em 0.85em;
+  color: var(--gl-text, #eef1f7);
+  font-family: var(--gl-display, "Oxanium", system-ui, sans-serif);
+  border: 1px solid var(--gl-edge, rgba(255, 255, 255, 0.13));
+  border-radius: 9px;
+  clip-path: polygon(0 0, calc(100% - 11px) 0, 100% 11px, 100% 100%, 0 100%);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0) 36%),
+    linear-gradient(98deg, color-mix(in srgb, var(--ff-accent) 20%, var(--gl-ink-1, #080b11)),
+      var(--gl-ink-1, #080b11) 68%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.13),
+    0 6px 16px rgba(0, 0, 0, 0.45),
+    0 0 24px color-mix(in srgb, var(--ff-accent) 16%, transparent);
+}
+.flatfinder-apex-phase::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--ff-accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--ff-accent) 70%, transparent);
+}
+.flatfinder-apex-phase .ff-ap-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.45em;
+}
+.flatfinder-apex-phase .ff-ap-kicker {
+  font-family: var(--gl-tech, monospace);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-weight: 700;
+  font-size: 0.6rem;
+  color: var(--ff-accent);
+}
+.flatfinder-apex-phase .ff-ap-name { font-weight: 800; color: var(--gl-text-bright, #f3fbff); }
+.flatfinder-apex-phase .ff-ap-hp {
+  margin-left: auto;
+  font-family: var(--gl-tech, monospace);
+  font-size: 0.66rem;
+  color: var(--gl-text-dim, #98a2b6);
+}
+.flatfinder-apex-phase .ff-ap-beats {
+  margin: 0.4em 0 0;
+  padding-left: 1.1em;
+  list-style: none;
+  font-size: 0.82rem;
+}
+.flatfinder-apex-phase .ff-ap-beats li { position: relative; margin: 0.12em 0; }
+.flatfinder-apex-phase .ff-ap-beats li::before {
+  content: "▶";
+  position: absolute;
+  left: -1.1em;
+  color: var(--ff-accent);
+  font-size: 0.7em;
+  top: 0.18em;
+}
+
+.flatfinder-apex-counteract {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12em;
+}
+.flatfinder-apex-counteract .ff-ac-kicker {
+  font-family: var(--gl-tech, monospace);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-weight: 700;
+  font-size: 0.62rem;
+  color: var(--gl-signal, #ffd24a);
+}
+.flatfinder-apex-counteract .ff-ac-note { font-size: 0.78rem; opacity: 0.88; }
+
 /* Honour the reduced-motion contract: no decorative motion is used here, but
    keep glows from animating if future states add loops. */
 @media (prefers-reduced-motion: reduce) {

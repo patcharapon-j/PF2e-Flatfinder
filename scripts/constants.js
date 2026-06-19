@@ -66,10 +66,13 @@ export const ENCOUNTER_BUDGET = {
 export const APEX_FLAG = "apex";
 export const APEX_PRIME_FLAG = "apexPrime";
 export const APEX_EXTRA_FLAG = "apexExtra";
+export const APEX_PHASES_FLAG = "apexPhasesFired";
 export const APEX_DEFAULTS = Object.freeze({ enabled: false, turns: 2 });
 export const APEX_TURNS_LIMITS = Object.freeze({ min: 2, max: 4 });
 /** Initiative gap between consecutive Apex turns (Flatfinder: −10 per extra turn). */
 export const APEX_INITIATIVE_STEP = 10;
+/** HP fractions that trigger an Apex phase beat (Flatfinder §8: 66% and 33%). */
+export const APEX_PHASE_THRESHOLDS = Object.freeze([0.66, 0.33]);
 
 /** The sibling module whose Card initiative mode owns multi-turn bosses itself. */
 export const GLUNI_MODULE_ID = "gluniverse-initiative";
