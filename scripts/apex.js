@@ -103,6 +103,15 @@ function extraData(combatant) {
   return combatant?.getFlag?.(MODULE_ID, APEX_EXTRA_FLAG) ?? null;
 }
 
+/**
+ * True when this combatant is one of the extra Apex turns we created — i.e. the
+ * same boss acting again, not an additional threat. Used by the encounter-budget
+ * math so a boss's extra turns aren't double-counted as separate creatures.
+ */
+export function isApexExtraCombatant(combatant) {
+  return !!extraData(combatant);
+}
+
 /** True for a "prime" Apex combatant (the rolled one, not one of our extras). */
 function isPrimeCombatant(combatant) {
   return !extraData(combatant) && isApexActor(combatant?.actor);

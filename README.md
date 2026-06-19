@@ -83,7 +83,7 @@ Flatfinder's **Apex** template (v3 §8) gives a lone boss more *actions* instead
 > Component 2 (the boss's single baitable reaction) is unchanged stock PF2e behaviour and needs no automation. The numerical "optional dial" is intentionally left off.
 
 ### Encounter XP budget & difficulty badge
-As the GM adds PCs and monsters/hazards to the **combat tracker**, a badge at the top shows the total **Flatfinder (Proficiency-without-Level) XP** and the resulting **difficulty band** (Trivial → Extreme), scaled to the party's level and size. Simple hazards count for 20% of a same-level creature; complex hazards count fully. Friendly/neutral NPCs are ignored.
+As the GM adds PCs and monsters/hazards to the **combat tracker**, a badge at the top shows the total **Flatfinder (Proficiency-without-Level) XP** and the resulting **difficulty band** (Trivial → Extreme), scaled to the party's level and size. Simple hazards count for 20% of a same-level creature; complex hazards count fully. Friendly/neutral NPCs are ignored. An **Apex (solo boss)** counts its XP **once per turn it takes** (Flatfinder §8) — a 3-turn same-level boss is roughly three creatures' worth of threat — and its auto-inserted extra-turn entries are not double-counted.
 
 ## Known gaps and issues
 - Competence checks still need the GM to interpret the band into fiction/outcome; the badge only displays the band.
