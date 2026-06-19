@@ -319,6 +319,104 @@
 .combatant .flatfinder-apex-counteract-btn:hover { color: var(--gl-signal-hot, #ffe070); }
 
 /* ===========================================================================
+   Apex (solo boss) — the NPC sheet itself reads as Apex.
+   A signal-amber frame on the window, an accent line under the titlebar, and an
+   etched "APEX" emblem banner at the top of the sheet body. Purely additive: it
+   decorates the window chrome and prepends one banner, never touching the
+   system's own sheet layout.
+   =========================================================================== */
+.flatfinder-apex-sheet {
+  --ff-apex: #ffd24a;
+  /* Amber hairline ring + outer bloom, with a depth shadow so we don't lose the
+     window's elevation when we override box-shadow. */
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ff-apex) 70%, transparent),
+    0 0 30px color-mix(in srgb, var(--ff-apex) 22%, transparent),
+    0 10px 34px rgba(0, 0, 0, 0.55) !important;
+}
+
+/* Accent line under the titlebar (covers V1 .window-header and V2 chrome). */
+.flatfinder-apex-sheet .window-header {
+  border-bottom: 1px solid color-mix(in srgb, var(--ff-apex) 55%, transparent);
+  box-shadow: 0 1px 12px color-mix(in srgb, var(--ff-apex) 30%, transparent);
+}
+
+/* The crown control in the titlebar glows so the Apex state is obvious. */
+.flatfinder-apex-sheet .flatfinder-apex-config {
+  color: var(--ff-apex);
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--ff-apex) 60%, transparent));
+}
+
+/* Etched "APEX" emblem banner — GL Universe glass slab, signal-amber accent. */
+.flatfinder-apex-emblem {
+  --gl-ink-1: #080b11;
+  --gl-text-bright: #f3fbff;
+  --gl-text-dim: #98a2b6;
+  --gl-edge: rgba(255, 255, 255, 0.13);
+  --gl-display: "Oxanium", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --gl-tech: "Bahnschrift", "Share Tech Mono", "JetBrains Mono", Consolas, monospace;
+  --ff-apex: #ffd24a;
+
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  margin: 0 0 0.4em;
+  padding: 0.34em 0.7em 0.34em 0.85em;
+  color: var(--gl-text-bright);
+  font-family: var(--gl-display);
+  isolation: isolate;
+
+  border: 1px solid var(--gl-edge);
+  border-radius: 8px;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0) 36%),
+    linear-gradient(98deg,
+      color-mix(in srgb, var(--ff-apex) 20%, var(--gl-ink-1)),
+      var(--gl-ink-1) 66%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 4px 14px rgba(0, 0, 0, 0.4),
+    0 0 22px color-mix(in srgb, var(--ff-apex) 18%, transparent);
+}
+/* Accent edge bar (left) — matches the badge family's idle marker. */
+.flatfinder-apex-emblem::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--ff-apex);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--ff-apex) 70%, transparent);
+}
+.flatfinder-apex-emblem > i {
+  color: var(--ff-apex);
+  font-size: 0.95em;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--ff-apex) 60%, transparent));
+}
+.flatfinder-apex-emblem .ff-apex-emblem-label {
+  font-family: var(--gl-tech);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-weight: 800;
+  font-size: 0.74rem;
+  color: var(--gl-text-bright);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--ff-apex) 55%, transparent);
+}
+.flatfinder-apex-emblem .ff-apex-emblem-turns {
+  margin-left: auto;
+  font-family: var(--gl-tech);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  font-size: 0.6rem;
+  color: var(--gl-text-dim);
+}
+
+/* ===========================================================================
    Apex chat cards (phase break + counteract) — etched glass, on chat.
    =========================================================================== */
 .flatfinder-apex-phase {
@@ -401,6 +499,79 @@
   color: var(--gl-signal, #ffd24a);
 }
 .flatfinder-apex-counteract .ff-ac-note { font-size: 0.78rem; opacity: 0.88; }
+
+/* Per-tier counteract reference table (Player Core counteract rules). */
+.flatfinder-apex-counteract .ff-ac-table {
+  width: 100%;
+  margin: 0.45em 0 0.3em;
+  border-collapse: collapse;
+  font-size: 0.74rem;
+  background: none;
+}
+.flatfinder-apex-counteract .ff-ac-table thead th {
+  font-family: var(--gl-tech, monospace);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.56rem;
+  font-weight: 700;
+  text-align: left;
+  color: var(--gl-text-dim, #98a2b6);
+  padding: 0 0.5em 0.2em;
+  border-bottom: 1px solid var(--gl-edge, rgba(255, 255, 255, 0.13));
+}
+.flatfinder-apex-counteract .ff-ac-table thead th:last-child { text-align: right; }
+.flatfinder-apex-counteract .ff-ac-table tbody th {
+  font-family: var(--gl-display, "Oxanium", system-ui, sans-serif);
+  font-weight: 700;
+  text-align: left;
+  white-space: nowrap;
+  color: var(--gl-text-bright, #f3fbff);
+  padding: 0.16em 0.5em;
+  background: none;
+  border: 0;
+}
+.flatfinder-apex-counteract .ff-ac-table tbody td {
+  text-align: right;
+  padding: 0.16em 0.5em;
+  border: 0;
+}
+.flatfinder-apex-counteract .ff-ac-table tbody tr + tr th,
+.flatfinder-apex-counteract .ff-ac-table tbody tr + tr td {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+/* Accent each tier on its left rail to match the badge family's degree colours. */
+.flatfinder-apex-counteract .ff-ac-table tbody th {
+  border-left: 3px solid var(--ff-tier, var(--gl-text-dim, #98a2b6));
+  padding-left: 0.55em;
+}
+.flatfinder-apex-counteract tr[data-degree="critical-success"] { --ff-tier: #5eeaff; }
+.flatfinder-apex-counteract tr[data-degree="success"]          { --ff-tier: #5fdb92; }
+.flatfinder-apex-counteract tr[data-degree="failure"]          { --ff-tier: #ffc24a; }
+.flatfinder-apex-counteract tr[data-degree="critical-failure"] { --ff-tier: #ff4a52; }
+.flatfinder-apex-counteract tr[data-degree] th { color: var(--gl-text-bright, #f3fbff); }
+
+.flatfinder-apex-counteract .ff-ac-rank {
+  font-family: var(--gl-tech, monospace);
+  font-weight: 800;
+  color: var(--gl-text-bright, #f3fbff);
+}
+.flatfinder-apex-counteract .ff-ac-band {
+  margin-left: 0.45em;
+  font-family: var(--gl-tech, monospace);
+  font-size: 0.64rem;
+  color: var(--gl-text-dim, #98a2b6);
+}
+.flatfinder-apex-counteract .ff-ac-fail {
+  font-weight: 700;
+  color: var(--gl-text-dim, #98a2b6);
+}
+.flatfinder-apex-counteract .ff-ac-foot {
+  display: block;
+  margin-top: 0.3em;
+  font-size: 0.64rem;
+  line-height: 1.3;
+  opacity: 0.7;
+}
 
 /* Honour the reduced-motion contract: no decorative motion is used here, but
    keep glows from animating if future states add loops. */

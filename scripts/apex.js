@@ -31,6 +31,7 @@ import {
   APEX_PHASES_FLAG,
   APEX_PRIME_FLAG,
   APEX_TURNS_LIMITS,
+  DEGREE_LABELS,
   GLUNI_MODULE_ID,
   MODULE_ID,
 } from "./constants.js";
@@ -297,6 +298,50 @@ function addApexHeaderControl(app, controls) {
   });
 }
 
+/**
+ * Mark the whole NPC sheet as Apex so its content reads as a solo boss at a
+ * glance: an amber signal frame on the window, a crown accent in the header, and
+ * an etched "APEX" emblem pinned to the sheet. The treatment tracks the live
+ * config — toggling Apex off (or disabling the feature) strips it on re-render.
+ */
+function decorateApexSheet(app, html) {
+  const actor = getActorFromSheet(app);
+  if (!actor || actor.type !== "npc") return;
+
+  const element = asElement(html) ?? asElement(app?.element) ?? app?.element;
+  const root = element?.closest?.(".app, .application, .window-app") ?? element;
+  if (!root) return;
+
+  const isApex = getSetting("apexTurns") && isApexActor(actor);
+
+  if (!isApex) {
+    root.classList.remove("flatfinder-apex-sheet");
+    root.removeAttribute("data-apex-turns");
+    root.querySelector(".flatfinder-apex-emblem")?.remove();
+    return;
+  }
+
+  const { turns } = getApexConfig(actor);
+  root.classList.add("flatfinder-apex-sheet");
+  root.dataset.apexTurns = String(turns);
+
+  // The emblem sits as a banner at the top of the sheet body so the content
+  // itself — not just the window chrome — reads as Apex.
+  const content = root.querySelector(".window-content") ?? root;
+  let emblem = root.querySelector(".flatfinder-apex-emblem");
+  if (!emblem || emblem.parentElement !== content) {
+    emblem?.remove();
+    emblem = document.createElement("div");
+    emblem.className = "flatfinder-apex-emblem";
+    content.prepend(emblem);
+  }
+  emblem.dataset.tooltip = game.i18n.localize("PF2E-FLATFINDER.Apex.Sheet.Tooltip");
+  emblem.innerHTML = `
+    <i class="fa-solid fa-crown" aria-hidden="true"></i>
+    <span class="ff-apex-emblem-label">${game.i18n.localize("PF2E-FLATFINDER.Apex.Sheet.Emblem")}</span>
+    <span class="ff-apex-emblem-turns">${game.i18n.format("PF2E-FLATFINDER.Apex.Sheet.Turns", { turns })}</span>`;
+}
+
 /** Inject a titlebar button directly (covers sheets that don't fire the above). */
 function injectApexTitlebarButton(app, html) {
   const actor = getActorFromSheet(app);
@@ -489,6 +534,67 @@ function highestSaveMod(actor) {
   return Number.isFinite(best) ? best : null;
 }
 
+/**
+ * A creature's counteract rank (Player Core, Counteracting): halve its level and
+ * round up, minimum 0. Flatfinder §8 has the boss counteract at its full creature
+ * level, so we derive the rank from the unmodified creature level.
+ */
+export function counteractRank(level) {
+  const lvl = Number(level);
+  if (!Number.isFinite(lvl)) return 0;
+  return Math.max(0, Math.ceil(lvl / 2));
+}
+
+/** The typical level band of a counteract rank (Player Core counteract table). */
+function rankLevelBand(rank) {
+  return { low: 2 * rank - 1, high: 2 * rank };
+}
+
+/**
+ * The four counteract outcomes for a given counteract rank, expressed as the
+ * highest *target* rank (and its level band) each degree of success can
+ * counteract — Player Core: Crit Success +3, Success +1, Failure −1, Crit
+ * Failure none.
+ */
+export function counteractOutcomes(rank) {
+  return [
+    { degree: 3, label: DEGREE_LABELS[3], rank: rank + 3 },
+    { degree: 2, label: DEGREE_LABELS[2], rank: rank + 1 },
+    { degree: 1, label: DEGREE_LABELS[1], rank: rank - 1 },
+    { degree: 0, label: DEGREE_LABELS[0], rank: null },
+  ];
+}
+
+/** Render the per-tier "what does this counteract" table rows for the chat card. */
+function counteractTableRows(rank) {
+  const L = (k) => game.i18n.localize(k);
+  const dash = L("PF2E-FLATFINDER.Apex.Counteract.None");
+  const degreeKey = ["critical-failure", "failure", "success", "critical-success"];
+
+  return counteractOutcomes(rank)
+    .map((o) => {
+      let cell;
+      if (o.rank === null || o.rank < 0) {
+        cell = `<span class="ff-ac-fail">${dash}</span>`;
+      } else {
+        const band = rankLevelBand(o.rank);
+        const levels = game.i18n.format("PF2E-FLATFINDER.Apex.Counteract.Levels", {
+          low: band.low,
+          high: band.high,
+        });
+        cell =
+          `<span class="ff-ac-rank">${game.i18n.format("PF2E-FLATFINDER.Apex.Counteract.Rank", { rank: o.rank })}</span>` +
+          `<span class="ff-ac-band">${levels}</span>`;
+      }
+      return `
+        <tr data-degree="${degreeKey[o.degree]}">
+          <th scope="row">${L(o.label)}</th>
+          <td>${cell}</td>
+        </tr>`;
+    })
+    .join("");
+}
+
 export async function apexCounteract(actor) {
   if (!actor) return;
   const mod = highestSaveMod(actor);
@@ -497,11 +603,23 @@ export async function apexCounteract(actor) {
     return;
   }
   const level = actor.level ?? actor.system?.details?.level?.value ?? 0;
+  const rank = counteractRank(level);
   const roll = await new Roll("1d20 + @mod", { mod }).evaluate();
+  const L = (k) => game.i18n.localize(k);
   const flavor = `
     <div class="flatfinder-apex-counteract">
-      <span class="ff-ac-kicker">${game.i18n.localize("PF2E-FLATFINDER.Apex.Counteract.Kicker")}</span>
-      <span class="ff-ac-note">${game.i18n.format("PF2E-FLATFINDER.Apex.Counteract.Note", { level })}</span>
+      <span class="ff-ac-kicker">${L("PF2E-FLATFINDER.Apex.Counteract.Kicker")}</span>
+      <span class="ff-ac-note">${game.i18n.format("PF2E-FLATFINDER.Apex.Counteract.Note", { level, rank })}</span>
+      <table class="ff-ac-table">
+        <thead>
+          <tr>
+            <th scope="col">${L("PF2E-FLATFINDER.Apex.Counteract.ColResult")}</th>
+            <th scope="col">${L("PF2E-FLATFINDER.Apex.Counteract.ColCounteracts")}</th>
+          </tr>
+        </thead>
+        <tbody>${counteractTableRows(rank)}</tbody>
+      </table>
+      <span class="ff-ac-foot">${L("PF2E-FLATFINDER.Apex.Counteract.Foot")}</span>
     </div>`;
   await roll.toMessage({
     speaker: ChatMessage.getSpeaker({ actor }),
@@ -523,6 +641,11 @@ export function registerApex() {
   Hooks.on("renderApplicationV1", injectApexTitlebarButton);
   Hooks.on("renderApplicationV2", injectApexTitlebarButton);
   Hooks.on("renderActorSheet", injectApexTitlebarButton);
+
+  // Make the sheet content itself read as Apex (frame, header accent, emblem).
+  Hooks.on("renderApplicationV1", decorateApexSheet);
+  Hooks.on("renderApplicationV2", decorateApexSheet);
+  Hooks.on("renderActorSheet", decorateApexSheet);
 
   // Combat synchronisation.
   Hooks.on("updateCombatant", (combatant, changed) => {
