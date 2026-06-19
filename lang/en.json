@@ -42,6 +42,7 @@
   "PF2E-FLATFINDER.Apex.Phase.Tactics": "Shift tactics — fire the per-phase ability.",
 
   "PF2E-FLATFINDER.Apex.Counteract.Button": "Apex counteract (highest save, full level)",
+  "PF2E-FLATFINDER.Apex.Counteract.SheetButton": "Counteract",
   "PF2E-FLATFINDER.Apex.Counteract.Kicker": "APEX COUNTERACT",
   "PF2E-FLATFINDER.Apex.Counteract.Note": "Counteract rank {rank} (creature level {level}, used in full). Compare this check to the effect's DC for the degree of success, then counteract up to:",
   "PF2E-FLATFINDER.Apex.Counteract.ColResult": "Result vs DC",
