@@ -77,5 +77,5 @@
       }
     ]
   },
-  "description": "<p>A compendium of replacements for Feats, Actions and Activities to streamline running Flatfinder on Foundry, plus automation for Competence-check result badges, Incapacitation adjustment, Flatfinder Elite/Weak templates, and a Flatfinder encounter XP/difficulty badge in the combat tracker. To be used with the Pathfinder 2e system and the Proficiency without Level variant enabled.</p>"
+  "description": "<p>A compendium of replacements for Feats, Actions and Activities to streamline running Flatfinder on Foundry, plus automation for Competence-check result badges, Incapacitation adjustment, Flatfinder Elite/Weak templates, the Apex (solo boss) extra-turn template, and a Flatfinder encounter XP/difficulty badge in the combat tracker. Badges follow the GL Universe Etched Glass design language. To be used with the Pathfinder 2e system and the Proficiency without Level variant enabled.</p>"
 }

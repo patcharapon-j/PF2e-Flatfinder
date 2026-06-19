@@ -1,7 +1,7 @@
 # PF2e Flatfinder
 A compendium of replacements for Feats, Actions and Activities to streamline running Flatfinder on Foundry, **plus automation** for Competence-check result badges, the Incapacitation adjustment, item/inline DC flattening, the Flatfinder Elite/Weak templates, and a Flatfinder encounter XP/difficulty badge in the combat tracker. To be used with the Pathfinder 2e system and the Proficiency without Level variant enabled.
 
-Compatible with Foundry VTT v13–v14 and the current Pathfinder 2e system. The badges are styled to blend with the **PF2e Dorako UI** module on both light and dark themes.
+Compatible with Foundry VTT v13–v14 and the current Pathfinder 2e system. The badges follow the **GL Universe "Etched Glass" design language** (dark frosted-glass slabs with a chamfered corner, an accent edge bar, etched micro-labels and the Oxanium/JetBrains Mono type pairing), so they sit consistently on both light/parchment and dark chat backgrounds and harmonize with the sibling [gluniverse-initiative](https://github.com/patcharapon-j/gluniverse-initiative) and Clocks & Tracker modules.
 
 NOTE: this is a module in active development.
 
@@ -47,10 +47,10 @@ The rest of the feats, actions and activities changed by Flatfinder, except the 
 All of the following can be toggled under *Game Settings → Configure Settings → PF2e Flatfinder*.
 
 ### Competence-check badges
-When a character makes a **skill check** (and, optionally, perception checks), a badge is added to the roll card showing where the total lands on the Flatfinder *Competence Check thresholds* band (Unbelievably Bad → Extraordinary). Because the Proficiency-without-Level variant already strips level from the roll, the check total maps directly onto the band.
-- A **natural 20** shifts the band up one step; a **natural 1** shifts it down one step.
-- **Lore skills** automatically gain a one-step increase (equivalent to +5), as required by Flatfinder.
-- The badge is styled to match PF2e Dorako UI on light and dark themes.
+When a character makes a **skill check** (and, optionally, perception checks), a badge is added to the roll card showing where the total lands on the Flatfinder v3 *Competence* table (Disastrous → Inept → Poor → Passable → Solid → Impressive → Remarkable → Phenomenal). Because the Proficiency-without-Level variant already strips level from the roll, the check total maps directly onto the tier.
+- A **natural 20** shifts the tier up one step; a **natural 1** shifts it down one step (Flatfinder treats these as ±5, i.e. one tier).
+- **Lore skills** automatically gain a one-step increase (equivalent to +5).
+- The badge follows the Etched Glass design language, with a semantic accent per tier.
 
 ### Incapacitation adjustment
 PF2e's native incapacitation rule improves the target's save by one degree of success. With *Incapacitation adjustment* enabled, that native behavior is **suppressed** and replaced with the Flatfinder rule: when a creature is higher level than the source of an incapacitation effect, it gains an **untyped bonus to the save equal to twice the level difference, up to +10** (a spell counts as level equal to twice its rank). The bonus is added as a real modifier (it shows in the roll breakdown and affects the degree of success), so no manual adjustment is needed. This works by wrapping `game.pf2e.Check.roll`; **lib-wrapper is recommended**.
@@ -68,6 +68,15 @@ Only *static* DCs are touched. A DC that resolves from a live actor statistic is
 > ⚠️ The **native Elite/Weak button does not work correctly under pf2e-flatten.** pf2e-flatten subtracts the creature's level from every check/DC and re-flattens whenever the level changes; the native button raises level by +1, so re-flattening cancels half of the template's +2. (Earlier versions of this module tried to bump the level on the sheet — that made the problem *worse* and has been removed.)
 
 With *Count Elite/Weak as +/-2 levels* enabled (default), this module treats an Elite/Weak creature — whether adjusted via the **bundled FF effects** or the **native button** — as **+/-2 levels** for the encounter-XP and incapacitation math, *without* touching the sheet, so pf2e-flatten is never disturbed. For base level −1/0/1 creatures, where Flatfinder says not to change HP/damage, use the **FF ... &lt;2** effects.
+
+### Apex (solo boss) extra turns
+Flatfinder's **Apex** template (v3 §8) gives a lone boss more *actions* instead of bigger numbers. With this enabled, you can mark any **NPC** as Apex and choose how many turns it takes per round:
+- Open the NPC sheet and click the **crown ("Apex") button** in the title bar. Toggle *Apex* on and set **Turns per round** (2 by default; 3 is suggested against a 5–6 PC party). You can also call `game.modules.get("pf2e-flatfinder").api.configureApex(actor)` from a macro.
+- In **standard initiative**, once the boss rolls, the module inserts its extra turns automatically at **(rolled initiative − 10)**, **(− 20)**, etc. Each extra turn is a genuine Foundry turn, so the system **resets the boss's Multiple Attack Penalty** for free.
+- The combat tracker badges each of the boss's turns: **PRIME · 1/N** for the Prime turn and **APEX · k/N** for the extras. Per Flatfinder, **per-turn effects (persistent damage, frightened, start/end-of-turn triggers) resolve only on the Prime turn** — the badge tells you which one that is.
+- **gluniverse-initiative compatibility:** in **Standard** mode the extra turns render naturally as additional cards on the boss's rail. While gluniverse's **Card** mode is active, this feature **stands down automatically**, because that mode already deals multi-turn bosses their own slots (configure turns there via its deck control instead).
+
+> The module automates the *extra turns and the Prime indicator*. The other parts of the Apex template (reactions, the once-per-turn condition-counteract action, and HP phases) remain GM-adjudicated.
 
 ### Encounter XP budget & difficulty badge
 As the GM adds PCs and monsters/hazards to the **combat tracker**, a badge at the top shows the total **Flatfinder (Proficiency-without-Level) XP** and the resulting **difficulty band** (Trivial → Extreme), scaled to the party's level and size. Simple hazards count for 20% of a same-level creature; complex hazards count fully. Friendly/neutral NPCs are ignored.

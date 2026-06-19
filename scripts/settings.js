@@ -66,6 +66,16 @@ export function registerSettings() {
     requiresReload: false,
   });
 
+  game.settings.register(MODULE_ID, "apexTurns", {
+    name: "PF2E-FLATFINDER.Settings.ApexTurns.Name",
+    hint: "PF2E-FLATFINDER.Settings.ApexTurns.Hint",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: true,
+    requiresReload: false,
+  });
+
   game.settings.register(MODULE_ID, "encounterBudget", {
     name: "PF2E-FLATFINDER.Settings.EncounterBudget.Name",
     hint: "PF2E-FLATFINDER.Settings.EncounterBudget.Hint",
