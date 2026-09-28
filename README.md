@@ -60,7 +60,7 @@ pf2e-flatten removes a creature's level from everything derived from its statist
 - **inline checks** written into descriptions, e.g. `@Check[fortitude|dc:25]`, and
 - **fixed save DCs** carried by items/spells that aren't computed from an actor.
 
-Only *static* DCs are touched. A DC that resolves from a live actor statistic is left to pf2e-flatten, so the two never stack and double-count. If no source item level can be determined, the roll is left untouched (native behavior). The flattened value is what's used for the degree of success and shown in the result. This works by wrapping `game.pf2e.Check.roll`; **lib-wrapper is recommended**.
+Only *static* DCs are touched. A DC that resolves from a live actor statistic is left to pf2e-flatten, so the two never stack and double-count. The same goes for inline checks whose number is **already adjusted** when the link is drawn: on a creature flattened by pf2e-flatten, PF2e runs `@Check[...|dc:N]` through the creature's modifiers (including the -level one), and `dc:resolve(...)` reads an already-flattened statistic. The DC shown on the link, and on its chat repost, is then used exactly as shown. The module only subtracts level when the rolled DC still equals the book `dc:N` value. If no source item level can be determined, the roll is left untouched (native behavior). The flattened value is what's used for the degree of success and shown in the result. This works by wrapping `game.pf2e.Check.roll`; **lib-wrapper is recommended**.
 
 ### Elite / Weak templates (and pf2e-flatten)
 **Use the bundled "FF Elite/Weak" effects** to apply the templates — they add a clean +/-2 to all checks/DCs and leave the creature's level alone, which is exactly what's needed alongside [pf2e-flatten](https://github.com/patcharapon-j/pf2e-flatten).
@@ -94,4 +94,4 @@ As the GM adds PCs and monsters/hazards to the **combat tracker**, a badge at th
 - Earn Income and Craft are not implemented.
 - Spells such as Animal Form don't have flattened *modifiers* (battle-form attack/AC); only DCs are flattened. pf2e-flatten already adjusts battle-form strikes via the character's level.
 - DC flattening needs a discoverable source-item level on the roll context; inline checks rolled with no item origin (e.g. from a journal) are left untouched.
-- The inline `@Check` button still shows the book DC before it's clicked; the flattened DC appears in the roll result.
+- On an item whose owner isn't flattened by pf2e-flatten, the inline `@Check` button still shows the book DC before it's clicked; the flattened DC appears in the roll result.
